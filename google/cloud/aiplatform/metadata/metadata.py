@@ -284,7 +284,7 @@ class _ExperimentTracker:
                 If ommitted, or set to `True` or `None`, the global tensorboard is used.
                 If no global tensorboard is set, the default tensorboard will be used, and created if it does not exist.
 
-                To disable using a backign tensorboard, set `backing_tensorboard` to `False`.
+                To disable using a backing tensorboard, set `backing_tensorboard` to `False`.
                 To maintain this behavior, set `experiment_tensorboard` to `False` in subsequent calls to aiplatform.init().
         """
         self.reset()
@@ -297,14 +297,18 @@ class _ExperimentTracker:
             backing_tb = backing_tensorboard
         elif isinstance(backing_tensorboard, bool) and not backing_tensorboard:
             backing_tb = None
+        elif experiment.backing_tensorboard_resource_name:
+            backing_tb = experiment.backing_tensorboard_resource_name
         else:
             backing_tb = (
                 self._global_tensorboard or _get_or_create_default_tensorboard()
             )
+        if isinstance(backing_tb, tensorboard_resource.Tensorboard):
+            backing_tb = backing_tb.resource_name
 
         current_backing_tb = experiment.backing_tensorboard_resource_name
 
-        if not current_backing_tb and backing_tb:
+        if current_backing_tb != backing_tb:
             experiment.assign_backing_tensorboard(tensorboard=backing_tb)
 
         self._experiment = experiment
